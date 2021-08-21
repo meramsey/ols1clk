@@ -135,8 +135,9 @@ function change_owner
 
 function check_root
 {
-    local INST_USER=`id -u`
-    if [ $INST_USER != 0 ] ; then
+	local INST_USER
+    INST_USER=$(id -u)
+    if [ "$INST_USER" != 0 ] ; then
         echoR "Sorry, only the root user can install."
         echo
         exit 1
@@ -146,9 +147,9 @@ function check_root
 function update_system(){
     echoG 'System update'
     if [ "$OSNAME" = "centos" ] ; then
-        silent ${YUM} update >/dev/null 2>&1
+        silent "${YUM}" update >/dev/null 2>&1
     else
-        silent ${APT} update && ${APT} upgrade -y >/dev/null 2>&1
+        silent "${APT}" update && "${APT}" upgrade -y >/dev/null 2>&1
     fi
 }
 
@@ -1386,17 +1387,18 @@ function install_wp_cli
 {
     if [ -e /usr/local/bin/wp ]; then 
         echoG 'WP CLI already exist'
+		wp cli update --yes
     else    
         echoG "Install wp_cli"
-        curl -sO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        chmod +x wp-cli.phar
-        mv wp-cli.phar /usr/local/bin/wp
+        wget -qO /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        chmod +x /usr/local/bin/wp
+		wp cli update --yes
     fi
     if [ ! -e /usr/bin/php ] && [ ! -L /usr/bin/php ]; then
         ln -s ${SERVER_ROOT}/lsphp${LSPHPVER}/bin/php /usr/bin/php
     elif [ ! -e /usr/bin/php ]; then 
-        rm -f /usr/bin/php
-        ln -s ${SERVER_ROOT}/lsphp${LSPHPVER}/bin/php /usr/bin/php    
+        rm -f /usr/bin/php > /dev/null 2>&1
+        ln -s ${SERVER_ROOT}/lsphp${LSPHPVER}/bin/php /usr/bin/php  
     else 
         echoG '/usr/bin/php symlink exist, skip symlink.'    
     fi
